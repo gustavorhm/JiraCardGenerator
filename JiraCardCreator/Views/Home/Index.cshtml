@@ -1,0 +1,107 @@
+﻿@using (Html.BeginForm())
+{
+    <div class="row">
+        &nbsp;
+    </div>
+    <div class="row">
+        <div class="col-md-1">
+            Username
+        </div>
+        <div class="col-md-2">
+            @Html.TextBox("txtUsername", null, new { id = "txtUsername" })
+        </div>
+        <div class="col-md-1">
+            Password
+        </div>
+        <div class="col-md-2">
+            @Html.TextBox("txtPassword", null, new { id = "txtPassword", type = "password" })
+        </div>
+    </div>
+    <div class="row" style="margin-top:15px">
+        <div class="col-md-1">
+            Jira Url
+        </div>
+        <div class="col-md-5">
+            @Html.TextBox("txtUrl", null, new { id = "txtUrl", style = "width:100%" })
+            http(s)://my.jira.url
+        </div>
+    </div>
+    <div class="row" style="margin-top:15px">
+        <div class="col-md-1">
+            Querystring
+        </div>
+        <div class="col-md-5">
+            @Html.TextBox("txtQueryString", null, new { id = "txtQueryString", style = "width:100%" })
+            ?jql=xxxxxxx
+        </div>
+    </div>
+    <div class="row" style="margin-top:30px">
+        <div class="col-md-4">
+            <a id="btnGenerate" href="#" class="btn btn-primary btn-large">Generate</a>
+        </div>
+    </div>
+    <div class="row" style="margin-top:30px">
+        <div id="issues">
+
+        </div>
+    </div>
+
+    @section scripts{
+        <script>
+            function GetCardsData() {
+                $.ajax({
+                    type: "POST",
+                    dataType: "json",
+                    url: '@Url.Action("GenerateCards", "Home")',
+                    data: {
+                        'username': document.getElementById('txtUsername').value,
+                        'password': document.getElementById('txtPassword').value,
+                        'url': document.getElementById('txtUrl').value,
+                        'queryString': document.getElementById('txtQueryString').value
+                    },
+                    success: function (data) {
+                        AddCardToPage(data);
+                    },
+                    error: function (data) {
+                        alert('error:' + data);
+                    }
+                });
+            }
+
+            function GetCardHtml(id, name, priority, description, storyPoints) {
+                return '<table style="border: 2px solid; width: 600px">' +
+                    '<tr style="background-color: lightgray">' +
+                    '<td style="width:15%; padding-left: 10px">' + id + '</td>' +
+                    '<td style="width:73%"><strong>' + name + '</strong></td>' +
+                    '<td style="width: 12%; padding-right: 10px">Prio ' + priority + '</td>' +
+                    '</tr>' +
+                    '<tr style="height:300px">' +
+                    '<td colspan="3" style="padding-left: 15px; padding-right: 15px" valign="top">' +
+                    '<br />' +
+                    description +
+                    '</td>' +
+                    '</tr>' +
+                    '<tr>' +
+                    '<td colspan="3" style="font-size: x-large; padding-right: 15px" align="right">' +
+                    +storyPoints +
+                    '</td>' +
+                    '</tr>' +
+                    '</table>' +
+                    '<br /><br />';
+            }
+
+            function AddCardToPage(data) {
+                var issuesDiv = document.getElementById("issues");
+                issuesDiv.innerHTML = '';
+
+                for (i in data) {
+                    issuesDiv.innerHTML += GetCardHtml(data[i].Id, data[i].Name, data[i].Priority, data[i].Description, data[i].StoryPoints);
+                }
+            }
+
+            $("#btnGenerate").click(function () {
+                GetCardsData();
+            });
+        </script>
+    }
+}
